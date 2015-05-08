@@ -6,6 +6,9 @@ import binascii
 from utils import microtime
 from collections import namedtuple
 import messages
+import_client_model = "from {0} import {1} as Client".format(settings.DEMIR_BANK_CLIENT_MODEL_PATH,
+                                                             settings.DEMIR_BANK_CLIENT_MODEL_NAME)
+exec import_client_model
 
 PayForm = namedtuple('PayForm', 'pay_action_url client_id amount transaction_type '
                                 'instalment oid ok_url fail_url rnd store_type lang '
