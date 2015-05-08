@@ -19,7 +19,7 @@ Library django-demirbank
     * CURRENCY_CODE = 417 # currency code for SOM
     * STORE_KEY = 'KEY VALUE RECEIVED FROM BANK'
 
-  * Settings required for django Client and Balance external models:
+  * Settings required for django Client external model:
     * DEMIR_BANK_CLIENT_MODEL_PATH = 'some_app.models' #for example
     * DEMIR_BANK_CLIENT_MODEL_NAME = 'Client' #for example
     * DEMIR_BANK_CLIENT_MODEL_SEARCH_FIELD = 'phone_number' #for example
