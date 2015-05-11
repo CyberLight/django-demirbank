@@ -6,6 +6,8 @@ import binascii
 from utils import microtime
 from collections import namedtuple
 import messages
+from models import DemirBankPayment
+
 import_client_model = "from {0} import {1} as Client".format(settings.DEMIR_BANK_CLIENT_MODEL_PATH,
                                                              settings.DEMIR_BANK_CLIENT_MODEL_NAME)
 exec import_client_model
@@ -55,28 +57,8 @@ class PaymentMixin(object):
         if not self._valid_order_id(order_id):
             raise InvalidOrderIdValueException()
 
-        pay_form = PayForm(pay_action_url=settings.PAY_ACTION_URL,
-                           client_id=settings.CLIENT_ID,
-                           amount=amount,
-                           transaction_type=settings.TRANSACTION_TYPE,
-                           instalment='',
-                           oid=order_id,
-                           ok_url=settings.OK_URL,
-                           fail_url=settings.FAIL_URL,
-                           rnd=microtime(),
-                           store_type=settings.STORE_TYPE,
-                           lang=settings.LANG,
-                           currency=settings.CURRENCY_CODE)
-
-        pay_form.hash = self._generate_hash(str(pay_form.client_id) +
-                                            str(pay_form.oid) +
-                                            str(pay_form.amount) +
-                                            str(pay_form.ok_url) +
-                                            str(pay_form.fail_url) +
-                                            str(pay_form.transaction_type) +
-                                            str(pay_form.instalment) +
-                                            str(pay_form.rnd) +
-                                            str(settings.STORE_KEY))
+        self._create_new_payment(account, amount, order_id)
+        pay_form = self._generate_pay_form(amount, order_id)
 
         return pay_form
 
@@ -111,6 +93,37 @@ class PaymentMixin(object):
         calculated_hash = self._generate_hash(hash_values)
         if not calculated_hash == bank_hash:
             raise RequestVerificationFailedException(value=messages.HASHES_DO_NOT_MATCHED)
+
+    def _generate_pay_form(self, amount, order_id):
+        pay_form = PayForm(pay_action_url=settings.PAY_ACTION_URL,
+                           client_id=settings.CLIENT_ID,
+                           amount=amount,
+                           transaction_type=settings.TRANSACTION_TYPE,
+                           instalment='',
+                           oid=order_id,
+                           ok_url=settings.OK_URL,
+                           fail_url=settings.FAIL_URL,
+                           rnd=microtime(),
+                           store_type=settings.STORE_TYPE,
+                           lang=settings.LANG,
+                           currency=settings.CURRENCY_CODE)
+        pay_form.hash = self._generate_hash(str(pay_form.client_id) +
+                                            str(pay_form.oid) +
+                                            str(pay_form.amount) +
+                                            str(pay_form.ok_url) +
+                                            str(pay_form.fail_url) +
+                                            str(pay_form.transaction_type) +
+                                            str(pay_form.instalment) +
+                                            str(pay_form.rnd) +
+                                            str(settings.STORE_KEY))
+        return pay_form
+
+    def _create_new_payment(self, account, amount, order_id):
+        payment = DemirBankPayment()
+        payment.order_id = order_id
+        payment.amount = amount
+        payment.account = account
+        payment.save()
 
     def _generate_hash(self, hash_values):
         return base64.b64encode(binascii.unhexlify(sha1(hash_values).hexdigest()))
