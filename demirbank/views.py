@@ -4,13 +4,15 @@ import base64
 from hashlib import sha1
 import binascii
 from utils import microtime
-from collections import namedtuple
+from collections import namedtuple, OrderedDict
 import messages
 from models import DemirBankPayment
+from parsers import DemirBankResponseParser
 
-import_client_model = "from {0} import {1} as Client".format(settings.DEMIR_BANK_CLIENT_MODEL_PATH,
-                                                             settings.DEMIR_BANK_CLIENT_MODEL_NAME)
-exec import_client_model
+app = __import__(settings.DEMIR_BANK_CLIENT_MODEL_PATH, fromlist=[settings.DEMIR_BANK_CLIENT_MODEL_NAME])
+Client = getattr(app, settings.DEMIR_BANK_CLIENT_MODEL_NAME)
+
+CLIENT_SEARCH_FIELD = settings.DEMIR_BANK_CLIENT_MODEL_SEARCH_FIELD
 
 PayForm = namedtuple('PayForm', 'pay_action_url client_id amount transaction_type '
                                 'instalment oid ok_url fail_url rnd store_type lang '
@@ -41,11 +43,18 @@ class InvalidOrderIdValueException(DemirBankException):
     pass
 
 
-class PaymentMixin(object):
+class PaymentAlreadyProcessedOrNotExistsException(DemirBankException):
+    pass
 
+
+class PaymentMixin(object):
     DEMIR_BANK_HASH_KEY = 'HASH'
     DEMIR_BANK_HASHPARAMSVAL = 'HASHPARAMSVAL'
     DEMIR_BANK_HASHPARAMS = 'HASHPARAMS'
+
+    def __init__(self):
+        self.account = None
+        self.payment = None
 
     def generate_payment(self, order_id, account, amount):
         if not self._account_exists(account):
@@ -66,8 +75,20 @@ class PaymentMixin(object):
         if not self._account_exists(account):
             raise AccountDoesNotExistException()
 
-        if not self._valid_order_id(payment_details.get('oid', '')):
+        order_id = payment_details.get('oid', '')
+        if not self._valid_order_id(order_id):
             raise InvalidOrderIdValueException()
+
+        if self._payment_exists(account, order_id):
+            parser = DemirBankResponseParser()
+            parsed_response = parser.parse_response(payment_details)
+            parsed_response_dict = OrderedDict(zip(parsed_response._fields, parsed_response))
+            self._check_payment_sign(parsed_response_dict)
+            self._fill_payment_with(parsed_response)
+            self.payment.save()
+            return self.payment
+
+        raise PaymentAlreadyProcessedOrNotExistsException(value=messages.PAYMENT_ALREADY_PROCESSED_OR_NOT_EXISTS)
 
     def fail_payment(self, account, payment_details):
         pass
@@ -129,10 +150,61 @@ class PaymentMixin(object):
         return base64.b64encode(binascii.unhexlify(sha1(hash_values).hexdigest()))
 
     def _account_exists(self, account):
-        pass
+        try:
+            search_condition = {CLIENT_SEARCH_FIELD: account}
+            self.account = Client.objects.get(**search_condition)
+            return True
+        except Client.DoesNotExist:
+            return False
 
     def _valid_amount(self, amount):
-        pass
+        try:
+            int(amount)
+            return True
+        except ValueError:
+            return False
 
     def _valid_order_id(self, order_id):
         return not order_id
+
+    def _payment_exists(self, account, order_id):
+        try:
+            self.payment = DemirBankPayment.objects.get(account=account,
+                                                        order_id=order_id,
+                                                        added=False)
+            return True
+        except DemirBankPayment.DoesNotExist:
+            return False
+
+    def _fill_payment_with(self, parsed):
+        self.payment.auth_code = parsed.AuthCode
+        self.payment.extra_cardbrand = parsed.EXTRA_CARDBRAND
+        self.payment.extra_trxdate = parsed.EXTRA_TRXDATE
+        self.payment.err_msg = parsed.ErrMsg
+        self.payment.hash = parsed.HASH
+        self.payment.hash_params = parsed.HASHPARAMS
+        self.payment.hash_params_val = parsed.HASHPARAMSVAL
+        self.payment.host_ref_num = parsed.HostRefNum
+        self.payment.masked_pan = parsed.MaskedPan
+        self.payment.pa_res_syntax_ok = parsed.PAResSyntaxOK
+        self.payment.pa_res_verified = parsed.PAResVerified
+        self.payment.proc_return_code = parsed.ProcReturnCode
+        self.payment.response = parsed.Response
+        self.payment.return_oid = parsed.ReturnOid
+        self.payment.trans_id = parsed.TransId
+        self.payment.cavv = parsed.cavv
+        self.payment.client_id = parsed.clientid
+        self.payment.eci = parsed.eci
+        self.payment.md = parsed.md
+        self.payment.rnd = parsed.rnd
+        self.payment.md_error_msg = parsed.mdErrorMsg
+        self.payment.md_status = parsed.mdStatus
+        self.payment.merchant_id = parsed.merchantID
+        self.payment.oid = parsed.oid
+        self.payment.storetype = parsed.storetype
+        self.payment.txstatus = parsed.txstatus
+        self.payment.client_ip = parsed.clientIp
+        self.payment.added = (parsed.mdErrorMsg == 'Authenticated' and
+                              not parsed.ErrMsg and
+                              parsed.mdStatus == 1 and
+                              parsed.txstatus == 'Y')
