@@ -7,7 +7,7 @@ from utils import microtime
 from collections import namedtuple, OrderedDict
 import messages
 from models import DemirBankPayment
-from parsers import DemirBankResponseParser
+from parsers import DemirBankSuccessResponseParser, DemirBankFailResponseParser
 
 app = __import__(settings.DEMIR_BANK_CLIENT_MODEL_PATH, fromlist=[settings.DEMIR_BANK_CLIENT_MODEL_NAME])
 Client = getattr(app, settings.DEMIR_BANK_CLIENT_MODEL_NAME)
@@ -79,26 +79,10 @@ class PaymentMixin(object):
         return pay_form
 
     def success_payment(self, account, payment_details):
-        if not self._account_exists(account):
-            raise AccountDoesNotExistException()
-
-        order_id = payment_details.get('oid', '')
-        if not self._valid_order_id(order_id):
-            raise InvalidOrderIdValueException()
-
-        if self._payment_exists(account, order_id):
-            parser = DemirBankResponseParser()
-            parsed_response = parser.parse_response(payment_details)
-            parsed_response_dict = OrderedDict(zip(parsed_response._fields, parsed_response))
-            self._check_payment_sign(parsed_response_dict)
-            self._fill_payment_with(parsed_response)
-            self.payment.save()
-            return self.payment
-
-        raise PaymentAlreadyProcessedOrNotExistsException(value=messages.PAYMENT_ALREADY_PROCESSED_OR_NOT_EXISTS)
+        return self._process_response(account, payment_details, DemirBankSuccessResponseParser)
 
     def fail_payment(self, account, payment_details):
-        pass
+        return self._process_response(account, payment_details, DemirBankFailResponseParser)
 
     def _check_payment_sign(self, payment_details):
         bank_hash = payment_details.get(self.DEMIR_BANK_HASH_KEY, '')
@@ -153,6 +137,25 @@ class PaymentMixin(object):
         payment.account = account
         payment.currency = currency
         payment.save()
+
+    def _process_response(self, account, payment_details, parser_class):
+        if not self._account_exists(account):
+            raise AccountDoesNotExistException()
+
+        order_id = payment_details.get('oid', '')
+        if not self._valid_order_id(order_id):
+            raise InvalidOrderIdValueException()
+
+        if self._payment_exists(account, order_id):
+            parser = parser_class()
+            parsed_response = parser.parse_response(payment_details)
+            parsed_response_dict = OrderedDict(zip(parsed_response._fields, parsed_response))
+            self._check_payment_sign(parsed_response_dict)
+            self._fill_payment_with(parsed_response)
+            self.payment.save()
+            return self.payment
+
+        raise PaymentAlreadyProcessedOrNotExistsException(value=messages.PAYMENT_ALREADY_PROCESSED_OR_NOT_EXISTS)
 
     def _generate_hash(self, hash_values):
         return base64.b64encode(binascii.unhexlify(sha1(hash_values).hexdigest()))

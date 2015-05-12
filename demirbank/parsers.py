@@ -9,8 +9,7 @@ DemirBankResponse = namedtuple('DemirBankResponse', 'AuthCode EXTRA_CARDBRAND EX
                                                     'mdStatus merchantID oid storetype txstatus clientIp')
 
 
-class DemirBankResponseParser(object):
-
+class DemirBankSuccessResponseParser(object):
     def parse_response(self, payment_details):
         response = DemirBankResponse(
             AuthCode=payment_details.get('AuthCode'),
@@ -42,5 +41,40 @@ class DemirBankResponseParser(object):
             storetype=payment_details.get('storetype'),
             txstatus=payment_details.get('txstatus'),
             clientIp=payment_details.get('clientIp'),
+        )
+        return response
+
+
+class DemirBankFailResponseParser(object):
+    def parse_response(self, payment_details):
+        response = DemirBankResponse(
+            AuthCode='',
+            EXTRA_CARDBRAND='',
+            EXTRA_TRXDATE=None,
+            ErrMsg=payment_details.get('ErrMsg'),
+            HASH=payment_details.get('HASH'),
+            HASHPARAMS=payment_details.get('HASHPARAMS'),
+            HASHPARAMSVAL=payment_details.get('HASHPARAMSVAL'),
+            Response=payment_details.get('Response'),
+            amount=int(payment_details.get('amount')),
+            clientid=payment_details.get('clientid'),
+            clientIp=payment_details.get('clientIp'),
+            currency=int(payment_details.get('currency')),
+            mdErrorMsg=payment_details.get('mdErrorMsg'),
+            mdStatus=int(payment_details.get('mdStatus')),
+            oid=int(payment_details.get('oid')),
+
+            ProcReturnCode=payment_details.get('ProcReturnCode', ''),
+            rnd=payment_details.get('rnd', ''),
+            PAResSyntaxOK=bool(payment_details.get('PAResSyntaxOK', 'false')),
+            ReturnOid=int(payment_details.get('ReturnOid', '0')),
+            PAResVerified=bool(payment_details.get('PAResVerified', 'false')),
+            TransId='',
+            cavv=payment_details.get('cavv', ''),
+            eci=payment_details.get('eci', ''),
+            md=payment_details.get('md', ''),
+            merchantID=payment_details.get('merchantID', ''),
+            storetype=payment_details.get('storetype', ''),
+            txstatus=payment_details.get('txstatus', '')
         )
         return response
