@@ -47,6 +47,10 @@ class PaymentAlreadyProcessedOrNotExistsException(DemirBankException):
     pass
 
 
+class InvalidCurrencyCodeException(DemirBankException):
+    pass
+
+
 class PaymentMixin(object):
     DEMIR_BANK_HASH_KEY = 'HASH'
     DEMIR_BANK_HASHPARAMSVAL = 'HASHPARAMSVAL'
@@ -56,17 +60,20 @@ class PaymentMixin(object):
         self.account = None
         self.payment = None
 
-    def generate_payment(self, order_id, account, amount):
+    def generate_payment(self, order_id, account, amount, currency):
         if not self._account_exists(account):
             raise AccountDoesNotExistException()
 
         if not self._valid_amount(amount):
-            raise InvalidAmountValueException()
+            raise InvalidAmountValueException(value=messages.INVALID_AMOUNT_VALUE)
 
         if not self._valid_order_id(order_id):
-            raise InvalidOrderIdValueException()
+            raise InvalidOrderIdValueException(value=messages.INVALID_ORDER_ID)
 
-        self._create_new_payment(account, amount, order_id)
+        if not self._valid_currency(currency):
+            raise InvalidCurrencyCodeException(value=messages.INVALID_CURRENCY_CODE)
+
+        self._create_new_payment(account, amount, order_id, currency)
         pay_form = self._generate_pay_form(amount, order_id)
 
         return pay_form
@@ -139,11 +146,12 @@ class PaymentMixin(object):
                                             str(settings.STORE_KEY))
         return pay_form
 
-    def _create_new_payment(self, account, amount, order_id):
+    def _create_new_payment(self, account, amount, order_id, currency):
         payment = DemirBankPayment()
         payment.order_id = order_id
         payment.amount = amount
         payment.account = account
+        payment.currency = currency
         payment.save()
 
     def _generate_hash(self, hash_values):
@@ -160,6 +168,13 @@ class PaymentMixin(object):
     def _valid_amount(self, amount):
         try:
             int(amount)
+            return True
+        except ValueError:
+            return False
+
+    def _valid_currency(self, currency):
+        try:
+            int(currency)
             return True
         except ValueError:
             return False
