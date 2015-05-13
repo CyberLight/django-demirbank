@@ -128,7 +128,7 @@ class PaymentMixin(object):
                                                               str(pay_form.instalment) +
                                                               str(pay_form.rnd) +
                                                               str(settings.STORE_KEY)))
-        return pay_form
+        return OrderedDict(zip(pay_form._fields, pay_form))
 
     def _create_new_payment(self, account, amount, order_id, currency):
         payment = DemirBankPayment()
