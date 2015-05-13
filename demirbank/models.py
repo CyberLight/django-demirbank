@@ -35,4 +35,4 @@ class DemirBankPayment(models.Model):
     oid = models.IntegerField(default=0)
     storetype = models.CharField(max_length=255, default='')
     txstatus = models.CharField(max_length=15, default='')
-    client_ip = models.GenericIPAddressField()
+    client_ip = models.GenericIPAddressField(null=True)

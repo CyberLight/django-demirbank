@@ -45,7 +45,7 @@ class Migration(migrations.Migration):
                 ('oid', models.IntegerField(default=0)),
                 ('storetype', models.CharField(default=b'', max_length=255)),
                 ('txstatus', models.CharField(default=b'', max_length=15)),
-                ('client_ip', models.GenericIPAddressField()),
+                ('client_ip', models.GenericIPAddressField(null=True)),
             ],
             options={
             },
