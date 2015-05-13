@@ -132,7 +132,7 @@ class PaymentMixin(object):
 
     def _create_new_payment(self, account, amount, order_id, currency):
         payment = DemirBankPayment()
-        payment.order_id = order_id
+        payment.oid = int(order_id)
         payment.amount = amount
         payment.account = account
         payment.currency = currency
@@ -183,7 +183,11 @@ class PaymentMixin(object):
             return False
 
     def _valid_order_id(self, order_id):
-        return not order_id
+        try:
+            int(order_id)
+            return True
+        except ValueError:
+            return False
 
     def _payment_exists(self, account, order_id):
         try:
