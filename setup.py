@@ -22,7 +22,7 @@ setup(
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='1.0.0a1',
+    version='1.0.1a1',
 
     description='DemirBank library for making payment using store type = 3d_Pay_Hosting and transaction type = Auth',
     long_description=long_description,
@@ -48,6 +48,8 @@ setup(
         # Indicate who your project is intended for
         'Intended Audience :: Developers',
         'Topic :: Office/Business :: Financial',
+        'Operating System :: OS Independent',
+        'Environment :: Web Environment',
 
         'Framework :: Django :: 1.7',
         'Framework :: Django :: 1.8',
