@@ -75,6 +75,8 @@ class DemirBankFailResponseParser(object):
             md=payment_details.get('md', ''),
             merchantID=payment_details.get('merchantID', ''),
             storetype=payment_details.get('storetype', ''),
-            txstatus=payment_details.get('txstatus', '')
+            txstatus=payment_details.get('txstatus', ''),
+            HostRefNum='',
+            MaskedPan=''
         )
         return response

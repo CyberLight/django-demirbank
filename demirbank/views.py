@@ -1,5 +1,4 @@
 from django.conf import settings
-from django.http import HttpResponse, HttpResponseBadRequest
 import base64
 from hashlib import sha1
 import binascii
@@ -118,16 +117,17 @@ class PaymentMixin(object):
                            rnd=microtime(),
                            store_type=settings.STORE_TYPE,
                            lang=settings.LANG,
-                           currency=settings.CURRENCY_CODE)
-        pay_form.hash = self._generate_hash(str(pay_form.client_id) +
-                                            str(pay_form.oid) +
-                                            str(pay_form.amount) +
-                                            str(pay_form.ok_url) +
-                                            str(pay_form.fail_url) +
-                                            str(pay_form.transaction_type) +
-                                            str(pay_form.instalment) +
-                                            str(pay_form.rnd) +
-                                            str(settings.STORE_KEY))
+                           currency=settings.CURRENCY_CODE,
+                           hash='')
+        pay_form = pay_form._replace(hash=self._generate_hash(str(pay_form.client_id) +
+                                                              str(pay_form.oid) +
+                                                              str(pay_form.amount) +
+                                                              str(pay_form.ok_url) +
+                                                              str(pay_form.fail_url) +
+                                                              str(pay_form.transaction_type) +
+                                                              str(pay_form.instalment) +
+                                                              str(pay_form.rnd) +
+                                                              str(settings.STORE_KEY)))
         return pay_form
 
     def _create_new_payment(self, account, amount, order_id, currency):
