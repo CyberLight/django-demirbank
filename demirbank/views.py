@@ -93,7 +93,7 @@ class PaymentMixin(object):
 
         hash_values = ''
         for key in params_keys:
-            hash_values += str(payment_details.get(key, ''))
+            hash_values += str(payment_details.get(self._normalize_key(key), 'null'))
 
         if not hash_values or not bank_hash_value:
             raise RequestVerificationFailedException(value=messages.MESSAGE_EMPTY_HASHPARAMSVAL)
@@ -106,6 +106,14 @@ class PaymentMixin(object):
         calculated_hash = self._generate_hash(hash_values)
         if not calculated_hash == bank_hash:
             raise RequestVerificationFailedException(value=messages.HASHES_DO_NOT_MATCHED)
+
+    def _normalize_key(self, key_name):
+        key_mapping = {
+            'ClientId': 'clientid',
+            'OrderId': 'oid'
+        }
+        new_key_value = key_mapping.get(key_name, None)
+        return key_name if not new_key_value else new_key_value
 
     def _generate_pay_form(self, amount, order_id):
         pay_form = PayForm(pay_action_url=settings.PAY_ACTION_URL,
