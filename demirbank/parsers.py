@@ -51,7 +51,7 @@ class DemirBankFailResponseParser(object):
             AuthCode='',
             EXTRA_CARDBRAND='',
             EXTRA_TRXDATE=None,
-            ErrMsg=payment_details.get('ErrMsg'),
+            ErrMsg=payment_details.get('ErrMsg', ''),
             HASH=payment_details.get('HASH'),
             HASHPARAMS=payment_details.get('HASHPARAMS'),
             HASHPARAMSVAL=payment_details.get('HASHPARAMSVAL'),
