@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from django.conf import settings
 import base64
 from hashlib import sha1
@@ -91,7 +93,7 @@ class PaymentMixin(object):
 
         hash_values = ''
         for key in params_keys:
-            hash_values += payment_details.get(key, '')
+            hash_values += str(payment_details.get(key, ''))
 
         if not hash_values or not bank_hash_value:
             raise RequestVerificationFailedException(value=messages.MESSAGE_EMPTY_HASHPARAMSVAL)
