@@ -7,7 +7,7 @@ class DemirBankPayment(models.Model):
     account = models.CharField(max_length=255)
     added = models.BooleanField(default=False)
     created_on = models.DateTimeField(auto_now_add=True, editable=False)
-    auth_code = models.BigIntegerField(default=0)
+    auth_code = models.CharField(max_length=12, default='')
     extra_cardbrand = models.CharField(max_length=128, default='')
     extra_trxdate = models.DateTimeField(null=True)
     err_msg = models.CharField(max_length=255, default='')

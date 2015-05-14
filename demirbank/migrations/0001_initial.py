@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
                 ('account', models.CharField(max_length=255)),
                 ('added', models.BooleanField(default=False)),
                 ('created_on', models.DateTimeField(auto_now_add=True)),
-                ('auth_code', models.BigIntegerField(default=0)),
+                ('auth_code', models.CharField(default=b'', max_length=12)),
                 ('extra_cardbrand', models.CharField(default=b'', max_length=128)),
                 ('extra_trxdate', models.DateTimeField(null=True)),
                 ('err_msg', models.CharField(default=b'', max_length=255)),
