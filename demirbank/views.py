@@ -192,7 +192,7 @@ class PaymentMixin(object):
     def _payment_exists(self, account, order_id):
         try:
             self.payment = DemirBankPayment.objects.get(account=account,
-                                                        order_id=order_id,
+                                                        oid=order_id,
                                                         added=False)
             return True
         except DemirBankPayment.DoesNotExist:
