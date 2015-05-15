@@ -236,7 +236,6 @@ class PaymentMixin(object):
         self.payment.storetype = parsed.storetype
         self.payment.txstatus = parsed.txstatus
         self.payment.client_ip = parsed.clientIp
-        self.payment.added = (parsed.mdErrorMsg == 'Authenticated' and
-                              not parsed.ErrMsg and
+        self.payment.added = (parsed.Response == 'Approved' and
                               parsed.mdStatus == 1 and
-                              parsed.txstatus == 'Y')
+                              parsed.ProcReturnCode == '00')
