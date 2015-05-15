@@ -203,7 +203,8 @@ class PaymentMixin(object):
         try:
             self.payment = DemirBankPayment.objects.get(account=account,
                                                         oid=order_id,
-                                                        added=False)
+                                                        added=False,
+                                                        processed_payment=False)
             return True
         except DemirBankPayment.DoesNotExist:
             return False
@@ -239,3 +240,4 @@ class PaymentMixin(object):
         self.payment.added = (parsed.Response == 'Approved' and
                               parsed.mdStatus == 1 and
                               parsed.ProcReturnCode == '00')
+        self.payment.processed_payment = True
