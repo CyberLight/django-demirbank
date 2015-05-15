@@ -16,6 +16,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('account', models.CharField(max_length=255)),
                 ('added', models.BooleanField(default=False)),
+                ('processed_payment', models.BooleanField(default=False)),
                 ('created_on', models.DateTimeField(auto_now_add=True)),
                 ('auth_code', models.CharField(default=b'', max_length=12)),
                 ('extra_cardbrand', models.CharField(default=b'', max_length=128)),
