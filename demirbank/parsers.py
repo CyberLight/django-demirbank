@@ -55,7 +55,7 @@ class DemirBankFailResponseParser(object):
             HASH=payment_details.get('HASH'),
             HASHPARAMS=payment_details.get('HASHPARAMS'),
             HASHPARAMSVAL=payment_details.get('HASHPARAMSVAL'),
-            Response=payment_details.get('Response'),
+            Response=payment_details.get('Response', ''),
             amount=int(payment_details.get('amount')),
             clientid=payment_details.get('clientid'),
             clientIp=payment_details.get('clientIp'),
