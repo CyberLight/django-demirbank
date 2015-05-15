@@ -184,8 +184,7 @@ class PaymentMixin(object):
 
     def _valid_amount(self, amount):
         try:
-            int(amount)
-            return True
+            return int(amount) > 0
         except ValueError:
             return False
 
