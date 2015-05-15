@@ -163,9 +163,10 @@ class PaymentMixin(object):
             self._check_payment_sign(parsed_response_dict)
             self._fill_payment_with(parsed_response)
             self.payment.save()
-            update_balance_demirbank = getattr(self.account,
-                                               settings.DEMIR_BANK_CLIENT_MODEL_UPDATE_BALANCE_METHOD_NAME)
-            update_balance_demirbank(self.payment.amount, "Пополнение баланса", payment=self.payment)
+            if self.payment.added:
+                update_balance_demirbank = getattr(self.account,
+                                                   settings.DEMIR_BANK_CLIENT_MODEL_UPDATE_BALANCE_METHOD_NAME)
+                update_balance_demirbank(self.payment.amount, "Пополнение баланса", payment=self.payment)
             return self.payment
 
         raise PaymentAlreadyProcessedOrNotExistsException(value=messages.PAYMENT_ALREADY_PROCESSED_OR_NOT_EXISTS)
