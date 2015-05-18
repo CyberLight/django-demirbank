@@ -9,6 +9,8 @@ from collections import namedtuple, OrderedDict
 import messages
 from models import DemirBankPayment
 from parsers import DemirBankSuccessResponseParser, DemirBankFailResponseParser
+import re
+import uuid
 
 app = __import__(settings.DEMIR_BANK_CLIENT_MODEL_PATH, fromlist=[settings.DEMIR_BANK_CLIENT_MODEL_NAME])
 Client = getattr(app, settings.DEMIR_BANK_CLIENT_MODEL_NAME)
@@ -61,12 +63,15 @@ class PaymentMixin(object):
         self.account = None
         self.payment = None
 
-    def generate_payment(self, order_id, account, amount, currency):
+    def generate_payment(self, account, amount, currency, order_id=''):
         if not self._account_exists(account):
             raise AccountDoesNotExistException()
 
         if not self._valid_amount(amount):
             raise InvalidAmountValueException(value=messages.INVALID_AMOUNT_VALUE)
+
+        if not order_id:
+            order_id = str(uuid.uuid4()).replace('-', '')
 
         if not self._valid_order_id(order_id):
             raise InvalidOrderIdValueException(value=messages.INVALID_ORDER_ID)
@@ -196,11 +201,7 @@ class PaymentMixin(object):
             return False
 
     def _valid_order_id(self, order_id):
-        try:
-            int(order_id)
-            return True
-        except ValueError:
-            return False
+        return order_id and re.match('^[a-zA-Z0-9]+$', order_id)
 
     def _payment_exists(self, account, order_id):
         try:

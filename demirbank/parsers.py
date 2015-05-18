@@ -37,7 +37,7 @@ class DemirBankSuccessResponseParser(object):
             mdErrorMsg=payment_details.get('mdErrorMsg'),
             mdStatus=int(payment_details.get('mdStatus')),
             merchantID=payment_details.get('merchantID'),
-            oid=int(payment_details.get('oid')),
+            oid=payment_details.get('oid'),
             storetype=payment_details.get('storetype'),
             txstatus=payment_details.get('txstatus'),
             clientIp=payment_details.get('clientIp'),
@@ -62,7 +62,7 @@ class DemirBankFailResponseParser(object):
             currency=int(payment_details.get('currency')),
             mdErrorMsg=payment_details.get('mdErrorMsg'),
             mdStatus=int(payment_details.get('mdStatus')),
-            oid=int(payment_details.get('oid')),
+            oid=payment_details.get('oid'),
 
             ProcReturnCode=payment_details.get('ProcReturnCode', ''),
             rnd=payment_details.get('rnd', ''),
