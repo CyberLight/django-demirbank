@@ -147,7 +147,7 @@ class PaymentMixin(object):
 
     def _create_new_payment(self, account, amount, order_id, currency):
         payment = DemirBankPayment()
-        payment.oid = int(order_id)
+        payment.oid = order_id
         payment.amount = amount
         payment.account = account
         payment.currency = currency
