@@ -33,7 +33,7 @@ class DemirBankPayment(models.Model):
     md_error_msg = models.CharField(max_length=512, default='')
     md_status = models.PositiveSmallIntegerField(default=0)
     merchant_id = models.CharField(max_length=50, default='')
-    oid = models.IntegerField(default=0)
+    oid = models.CharField(max_length=64, default='', unique=True)
     storetype = models.CharField(max_length=255, default='')
     txstatus = models.CharField(max_length=15, default='')
     client_ip = models.GenericIPAddressField(null=True)

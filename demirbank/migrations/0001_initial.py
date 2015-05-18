@@ -43,7 +43,7 @@ class Migration(migrations.Migration):
                 ('md_error_msg', models.CharField(default=b'', max_length=512)),
                 ('md_status', models.PositiveSmallIntegerField(default=0)),
                 ('merchant_id', models.CharField(default=b'', max_length=50)),
-                ('oid', models.IntegerField(default=0)),
+                ('oid', models.CharField(default=b'', unique=True, max_length=64)),
                 ('storetype', models.CharField(default=b'', max_length=255)),
                 ('txstatus', models.CharField(default=b'', max_length=15)),
                 ('client_ip', models.GenericIPAddressField(null=True)),
