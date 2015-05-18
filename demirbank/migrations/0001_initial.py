@@ -31,7 +31,7 @@ class Migration(migrations.Migration):
                 ('pa_res_verified', models.BooleanField(default=False)),
                 ('proc_return_code', models.CharField(default=b'', max_length=2)),
                 ('response', models.CharField(default=b'', max_length=50)),
-                ('return_oid', models.IntegerField(default=0)),
+                ('return_oid', models.CharField(default=b'', max_length=64)),
                 ('trans_id', models.CharField(default=b'', max_length=64)),
                 ('amount', models.DecimalField(default=0, max_digits=7, decimal_places=2)),
                 ('cavv', models.CharField(default=b'', max_length=28)),

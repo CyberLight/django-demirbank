@@ -21,7 +21,7 @@ class DemirBankPayment(models.Model):
     pa_res_verified = models.BooleanField(default=False)
     proc_return_code = models.CharField(max_length=2, default='')
     response = models.CharField(max_length=50, default='')
-    return_oid = models.IntegerField(default=0)
+    return_oid = models.CharField(max_length=64, default='')
     trans_id = models.CharField(max_length=64, default='')
     amount = models.DecimalField(decimal_places=2, max_digits=7, default=0)
     cavv = models.CharField(max_length=28, default='')
