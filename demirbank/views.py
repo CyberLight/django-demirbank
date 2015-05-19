@@ -107,7 +107,7 @@ class PaymentMixin(object):
         if hash_values != bank_hash_value:
             raise RequestVerificationFailedException(value=messages.HASH_VALUES_DO_NOT_MATCH)
 
-        store_key = settings.STORE_KEY
+        store_key = settings.DEMIR_BANK_STORE_KEY
         hash_values += store_key
         calculated_hash = self._generate_hash(hash_values)
         if not calculated_hash == bank_hash:
@@ -122,18 +122,18 @@ class PaymentMixin(object):
         return key_name if not new_key_value else new_key_value
 
     def _generate_pay_form(self, amount, order_id):
-        pay_form = PayForm(pay_action_url=settings.PAY_ACTION_URL,
-                           client_id=settings.CLIENT_ID,
+        pay_form = PayForm(pay_action_url=settings.DEMIR_BANK_PAY_ACTION_URL,
+                           client_id=settings.DEMIR_BANK_CLIENT_ID,
                            amount=amount,
-                           transaction_type=settings.TRANSACTION_TYPE,
-                           instalment='',
+                           transaction_type=settings.DEMIR_BANK_TRANSACTION_TYPE,
+                           instalment=settings.DEMIR_BANK_INSTALMENT,
                            oid=order_id,
-                           ok_url=settings.OK_URL,
-                           fail_url=settings.FAIL_URL,
+                           ok_url=settings.DEMIR_BANK_OK_URL,
+                           fail_url=settings.DEMIR_BANK_FAIL_URL,
                            rnd=microtime(),
-                           store_type=settings.STORE_TYPE,
-                           lang=settings.LANG,
-                           currency=settings.CURRENCY_CODE,
+                           store_type=settings.DEMIR_BANK_STORE_TYPE,
+                           lang=settings.DEMIR_BANK_LANG,
+                           currency=settings.DEMIR_BANK_CURRENCY_CODE,
                            hash='')
         pay_form = pay_form._replace(hash=self._generate_hash(str(pay_form.client_id) +
                                                               str(pay_form.oid) +
@@ -143,7 +143,7 @@ class PaymentMixin(object):
                                                               str(pay_form.transaction_type) +
                                                               str(pay_form.instalment) +
                                                               str(pay_form.rnd) +
-                                                              str(settings.STORE_KEY)))
+                                                              str(settings.DEMIR_BANK_STORE_KEY)))
         return OrderedDict(zip(pay_form._fields, pay_form))
 
     def _create_new_payment(self, account, amount, order_id, currency):
