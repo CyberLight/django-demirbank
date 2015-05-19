@@ -80,8 +80,14 @@ class PaymentMixin(object):
         if not self._valid_currency(currency):
             raise InvalidCurrencyCodeException(value=messages.INVALID_CURRENCY_CODE)
 
-        self._create_new_payment(account, amount, order_id, currency)
-        pay_form = self._generate_pay_form(amount, order_id)
+        self._create_new_payment(account=account,
+                                 amount=amount,
+                                 order_id=order_id,
+                                 currency=currency)
+
+        pay_form = self._generate_pay_form(amount=amount,
+                                           currency=currency,
+                                           order_id=order_id)
 
         return pay_form
 
@@ -121,7 +127,7 @@ class PaymentMixin(object):
         new_key_value = key_mapping.get(key_name, None)
         return key_name if not new_key_value else new_key_value
 
-    def _generate_pay_form(self, amount, order_id):
+    def _generate_pay_form(self, amount, currency, order_id):
         pay_form = PayForm(pay_action_url=settings.DEMIR_BANK_PAY_ACTION_URL,
                            client_id=settings.DEMIR_BANK_CLIENT_ID,
                            amount=amount,
@@ -133,7 +139,7 @@ class PaymentMixin(object):
                            rnd=microtime(),
                            store_type=settings.DEMIR_BANK_STORE_TYPE,
                            lang=settings.DEMIR_BANK_LANG,
-                           currency=settings.DEMIR_BANK_CURRENCY_CODE,
+                           currency=currency,
                            hash='')
         pay_form = pay_form._replace(hash=self._generate_hash(str(pay_form.client_id) +
                                                               str(pay_form.oid) +
