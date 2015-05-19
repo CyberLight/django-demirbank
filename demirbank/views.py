@@ -66,7 +66,7 @@ class PaymentMixin(object):
 
     def generate_payment(self, account, amount, currency, order_id=''):
         if not self._account_exists(account):
-            raise AccountDoesNotExistException()
+            raise AccountDoesNotExistException(value=account)
 
         if not self._valid_amount(amount):
             raise InvalidAmountValueException(value=messages.INVALID_AMOUNT_VALUE)
@@ -161,12 +161,18 @@ class PaymentMixin(object):
             raise InvalidOrderIdValueException()
 
         if self._payment_exists(order_id):
+
+            account = self.payment.account
+            if not self._account_exists(account):
+                raise AccountDoesNotExistException(value=account)
+
             parser = parser_class()
             parsed_response = parser.parse_response(payment_details)
             parsed_response_dict = OrderedDict(zip(parsed_response._fields, parsed_response))
             self._check_payment_sign(parsed_response_dict)
             self._fill_payment_with(parsed_response)
             self.payment.save()
+
             if self.payment.added:
                 update_balance_demirbank = getattr(self.account,
                                                    settings.DEMIR_BANK_CLIENT_MODEL_UPDATE_BALANCE_METHOD_NAME)
