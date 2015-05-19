@@ -12,6 +12,9 @@ from models import DemirBankPayment
 from parsers import DemirBankSuccessResponseParser, DemirBankFailResponseParser
 import re
 import uuid
+from errors import RequestVerificationFailedException, AccountDoesNotExistException, \
+    InvalidAmountValueException, InvalidOrderIdValueException, PaymentAlreadyProcessedOrNotExistsException, \
+    InvalidCurrencyCodeException
 
 app = __import__(settings.DEMIR_BANK_CLIENT_MODEL_PATH, fromlist=[settings.DEMIR_BANK_CLIENT_MODEL_NAME])
 Client = getattr(app, settings.DEMIR_BANK_CLIENT_MODEL_NAME)
@@ -21,39 +24,6 @@ CLIENT_SEARCH_FIELD = settings.DEMIR_BANK_CLIENT_MODEL_SEARCH_FIELD
 PayForm = namedtuple('PayForm', 'pay_action_url client_id amount transaction_type '
                                 'instalment oid ok_url fail_url rnd store_type lang '
                                 'currency hash')
-
-
-class DemirBankException(Exception):
-    def __init__(self, value=None):
-        self.value = value
-
-    def __str__(self):
-        return repr(self.value)
-
-
-class RequestVerificationFailedException(DemirBankException):
-    pass
-
-
-class AccountDoesNotExistException(DemirBankException):
-    pass
-
-
-class InvalidAmountValueException(DemirBankException):
-    pass
-
-
-class InvalidOrderIdValueException(DemirBankException):
-    pass
-
-
-class PaymentAlreadyProcessedOrNotExistsException(DemirBankException):
-    pass
-
-
-class InvalidCurrencyCodeException(DemirBankException):
-    pass
-
 
 class PaymentMixin(object):
     DEMIR_BANK_HASH_KEY = 'HASH'
