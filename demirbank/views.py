@@ -4,6 +4,7 @@ from django.conf import settings
 import base64
 from hashlib import sha1
 import binascii
+from django.http import HttpResponse
 from utils import microtime
 from collections import namedtuple, OrderedDict
 import messages
@@ -84,11 +85,11 @@ class PaymentMixin(object):
 
         return pay_form
 
-    def success_payment(self, account, payment_details):
-        return self._process_response(account, payment_details, DemirBankSuccessResponseParser)
+    def success_payment(self, payment_details, payment_reason):
+        return self._process_response(payment_details, DemirBankSuccessResponseParser, payment_reason)
 
-    def fail_payment(self, account, payment_details):
-        return self._process_response(account, payment_details, DemirBankFailResponseParser)
+    def fail_payment(self, payment_details):
+        return self._process_response(payment_details, DemirBankFailResponseParser)
 
     def _check_payment_sign(self, payment_details):
         bank_hash = payment_details.get(self.DEMIR_BANK_HASH_KEY, '')
@@ -153,15 +154,13 @@ class PaymentMixin(object):
         payment.currency = currency
         payment.save()
 
-    def _process_response(self, account, payment_details, parser_class):
-        if not self._account_exists(account):
-            raise AccountDoesNotExistException()
+    def _process_response(self, payment_details, parser_class, payment_reason=''):
 
         order_id = payment_details.get('oid', '')
         if not self._valid_order_id(order_id):
             raise InvalidOrderIdValueException()
 
-        if self._payment_exists(account, order_id):
+        if self._payment_exists(order_id):
             parser = parser_class()
             parsed_response = parser.parse_response(payment_details)
             parsed_response_dict = OrderedDict(zip(parsed_response._fields, parsed_response))
@@ -171,7 +170,7 @@ class PaymentMixin(object):
             if self.payment.added:
                 update_balance_demirbank = getattr(self.account,
                                                    settings.DEMIR_BANK_CLIENT_MODEL_UPDATE_BALANCE_METHOD_NAME)
-                update_balance_demirbank(self.payment.amount, "Пополнение баланса", payment=self.payment)
+                update_balance_demirbank(self.payment.amount, payment_reason, payment=self.payment)
             return self.payment
 
         raise PaymentAlreadyProcessedOrNotExistsException(value=messages.PAYMENT_ALREADY_PROCESSED_OR_NOT_EXISTS)
@@ -203,10 +202,9 @@ class PaymentMixin(object):
     def _valid_order_id(self, order_id):
         return order_id and re.match('^[a-zA-Z0-9]+$', order_id)
 
-    def _payment_exists(self, account, order_id):
+    def _payment_exists(self, order_id):
         try:
-            self.payment = DemirBankPayment.objects.get(account=account,
-                                                        oid=order_id,
+            self.payment = DemirBankPayment.objects.get(oid=order_id,
                                                         added=False,
                                                         processed_payment=False)
             return True
@@ -245,3 +243,6 @@ class PaymentMixin(object):
                               parsed.mdStatus == 1 and
                               parsed.ProcReturnCode == '00')
         self.payment.processed_payment = True
+
+    def DemirBankHttpResponse(self):
+        return HttpResponse('0', 'text/plain')
