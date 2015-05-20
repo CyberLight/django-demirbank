@@ -35,10 +35,9 @@ class PaymentMixin(object):
         self.payment = None
 
     def generate_payment(self, account, amount, currency, order_id=''):
-        normalized_account = self._normalize_account(account)
 
-        if not self._account_exists(normalized_account):
-            raise AccountDoesNotExistException(value=normalized_account)
+        if not self._account_exists(account):
+            raise AccountDoesNotExistException(value=account)
 
         if not self._valid_amount(amount):
             raise InvalidAmountValueException(value=messages.INVALID_AMOUNT_VALUE)
@@ -52,7 +51,7 @@ class PaymentMixin(object):
         if not self._valid_currency(currency):
             raise InvalidCurrencyCodeException(value=messages.INVALID_CURRENCY_CODE)
 
-        self._create_new_payment(account=normalized_account,
+        self._create_new_payment(account=account,
                                  amount=amount,
                                  order_id=order_id,
                                  currency=currency)
@@ -102,7 +101,7 @@ class PaymentMixin(object):
     def _generate_pay_form(self, amount, currency, order_id):
         pay_form = PayForm(pay_action_url=settings.DEMIR_BANK_PAY_ACTION_URL,
                            client_id=settings.DEMIR_BANK_CLIENT_ID,
-                           amount=amount,
+                           amount=int(amount),
                            transaction_type=settings.DEMIR_BANK_TRANSACTION_TYPE,
                            instalment=settings.DEMIR_BANK_INSTALMENT,
                            oid=order_id,
@@ -127,7 +126,7 @@ class PaymentMixin(object):
     def _create_new_payment(self, account, amount, order_id, currency):
         payment = DemirBankPayment()
         payment.oid = order_id
-        payment.amount = amount
+        payment.amount = int(amount)
         payment.account = account
         payment.currency = currency
         payment.save()
@@ -227,9 +226,6 @@ class PaymentMixin(object):
                               parsed.mdStatus == 1 and
                               parsed.ProcReturnCode == '00')
         self.payment.processed_payment = True
-
-    def _normalize_account(self, account):
-        return re.sub(settings.DEMIR_BANK_ACCOUNT_NORMALIZE_REGEX, '', account)
 
     def DemirBankHttpResponse(self):
         return HttpResponse('0', 'text/plain')
