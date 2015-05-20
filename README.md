@@ -21,7 +21,6 @@ DEMIR_BANK_CLIENT_MODEL_PATH = 'app.models'
 DEMIR_BANK_CLIENT_MODEL_NAME = 'Client'
 DEMIR_BANK_CLIENT_MODEL_SEARCH_FIELD = 'phone_number'
 DEMIR_BANK_CLIENT_MODEL_UPDATE_BALANCE_METHOD_NAME = 'update_balance_demirbank'
-DEMIR_BANK_ACCOUNT_NORMALIZE_REGEX = '^996' # for removing country code from account phone number
 ```
 
 ### For example, put this code inside view.py 

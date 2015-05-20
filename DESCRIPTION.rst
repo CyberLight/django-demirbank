@@ -28,5 +28,4 @@ DEMIR_BANK_STORE_KEY                                     'KEY VALUE RECEIVED FRO
 ``DEMIR_BANK_CLIENT_MODEL_NAME``                         'Client' #for example
 ``DEMIR_BANK_CLIENT_MODEL_SEARCH_FIELD``                 'phone_number' #for example
 ``DEMIR_BANK_CLIENT_MODEL_UPDATE_BALANCE_METHOD_NAME``   'update_balance' #for example
-``DEMIR_BANK_ACCOUNT_NORMALIZE_REGEX``                   'regex for removing some parts from account'
 =======================================================  =============================================
