@@ -31,12 +31,14 @@ class PaymentMixin(object):
     DEMIR_BANK_HASHPARAMS = 'HASHPARAMS'
 
     def __init__(self):
-        self.account = None
+        self.client = None
         self.payment = None
 
     def generate_payment(self, account, amount, currency, order_id=''):
-        if not self._account_exists(account):
-            raise AccountDoesNotExistException(value=account)
+        normalized_account = self._normalize_account(account)
+
+        if not self._account_exists(normalized_account):
+            raise AccountDoesNotExistException(value=normalized_account)
 
         if not self._valid_amount(amount):
             raise InvalidAmountValueException(value=messages.INVALID_AMOUNT_VALUE)
@@ -50,7 +52,7 @@ class PaymentMixin(object):
         if not self._valid_currency(currency):
             raise InvalidCurrencyCodeException(value=messages.INVALID_CURRENCY_CODE)
 
-        self._create_new_payment(account=account,
+        self._create_new_payment(account=normalized_account,
                                  amount=amount,
                                  order_id=order_id,
                                  currency=currency)
@@ -150,7 +152,7 @@ class PaymentMixin(object):
             self.payment.save()
 
             if self.payment.added:
-                update_balance_demirbank = getattr(self.account,
+                update_balance_demirbank = getattr(self.client,
                                                    settings.DEMIR_BANK_CLIENT_MODEL_UPDATE_BALANCE_METHOD_NAME)
                 update_balance_demirbank(self.payment.amount, payment_reason, payment=self.payment)
             return self.payment
@@ -163,7 +165,7 @@ class PaymentMixin(object):
     def _account_exists(self, account):
         try:
             search_condition = {CLIENT_SEARCH_FIELD: account}
-            self.account = Client.objects.get(**search_condition)
+            self.client = Client.objects.get(**search_condition)
             return True
         except Client.DoesNotExist:
             return False
@@ -225,6 +227,9 @@ class PaymentMixin(object):
                               parsed.mdStatus == 1 and
                               parsed.ProcReturnCode == '00')
         self.payment.processed_payment = True
+
+    def _normalize_account(self, account):
+        return re.sub(settings.DEMIR_BANK_ACCOUNT_NORMALIZE_REGEX, '', account)
 
     def DemirBankHttpResponse(self):
         return HttpResponse('0', 'text/plain')
