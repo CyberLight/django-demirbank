@@ -37,3 +37,4 @@ class DemirBankPayment(models.Model):
     storetype = models.CharField(max_length=255, default='')
     txstatus = models.CharField(max_length=15, default='')
     client_ip = models.GenericIPAddressField(null=True)
+    demirbank_card = models.BooleanField(default=False)

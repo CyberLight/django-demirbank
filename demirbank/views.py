@@ -26,6 +26,7 @@ PayForm = namedtuple('PayForm', 'pay_action_url client_id amount transaction_typ
                                 'currency hash')
 
 class PaymentMixin(object):
+    DEMIR_BANK_VALID_BIN_REGEXP = r'^((417221)|(417220)|(417219)|(458818)|(470346))'
     DEMIR_BANK_HASH_KEY = 'HASH'
     DEMIR_BANK_HASHPARAMSVAL = 'HASHPARAMSVAL'
     DEMIR_BANK_HASHPARAMS = 'HASHPARAMS'
@@ -226,6 +227,10 @@ class PaymentMixin(object):
                               parsed.mdStatus == 1 and
                               parsed.ProcReturnCode == '00')
         self.payment.processed_payment = True
+        self.payment.demirbank_card = self._is_demirbank_card(self.payment.masked_pan)
+
+    def _is_demirbank_card(self, masked_card_number):
+        return True if re.match(self.DEMIR_BANK_VALID_BIN_REGEXP, masked_card_number) else False
 
     def DemirBankHttpResponse(self):
         return HttpResponse('0', 'text/plain')
