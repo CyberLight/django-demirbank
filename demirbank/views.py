@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from django.conf import settings
+from django.db import transaction
 import base64
 from hashlib import sha1
 import binascii
@@ -152,9 +153,12 @@ class PaymentMixin(object):
             self.payment.save()
 
             if self.payment.added:
-                update_balance_demirbank = getattr(self.client,
-                                                   settings.DEMIR_BANK_CLIENT_MODEL_UPDATE_BALANCE_METHOD_NAME)
-                update_balance_demirbank(self.payment.amount, payment_reason, payment=self.payment)
+                with transaction.atomic(using=self._get_connection_name()):
+                    search_condition = {CLIENT_SEARCH_FIELD: account}
+                    client = Client.objects.select_for_update().get(**search_condition)
+                    update_balance_demirbank = getattr(client,
+                                                       settings.DEMIR_BANK_CLIENT_MODEL_UPDATE_BALANCE_METHOD_NAME)
+                    update_balance_demirbank(self.payment.amount, payment_reason, payment=self.payment)
             return self.payment
 
         raise PaymentAlreadyProcessedOrNotExistsException(value=messages.PAYMENT_ALREADY_PROCESSED_OR_NOT_EXISTS)
@@ -234,3 +238,8 @@ class PaymentMixin(object):
 
     def DemirBankHttpResponse(self):
         return HttpResponse('0', 'text/plain')
+
+    def _get_connection_name(self):
+        if hasattr(settings, 'DEMIR_BANK_DATABASE_CONNECTION_NAME'):
+            return settings.DEMIR_BANK_DATABASE_CONNECTION_NAME
+        return 'default'

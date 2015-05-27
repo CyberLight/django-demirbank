@@ -11,9 +11,9 @@ Library settings
 
 The following settings needs to add inside ``settings/dev.py`` or ``settings/prod.py``
 
-=======================================================  =============================================
+=======================================================  ==================================================
 Name                                                     Value
-=======================================================  =============================================
+=======================================================  ==================================================
 DEMIR_BANK_PAY_ACTION_URL                                'url/to/demirbank/proces'
 DEMIR_BANK_CLIENT_ID                                     12345678 # client id
 DEMIR_BANK_TRANSACTION_TYPE                              'Auth' # type for Selling operation
@@ -28,4 +28,5 @@ DEMIR_BANK_STORE_KEY                                     'KEY VALUE RECEIVED FRO
 ``DEMIR_BANK_CLIENT_MODEL_NAME``                         'Client' #for example
 ``DEMIR_BANK_CLIENT_MODEL_SEARCH_FIELD``                 'phone_number' #for example
 ``DEMIR_BANK_CLIENT_MODEL_UPDATE_BALANCE_METHOD_NAME``   'update_balance' #for example
-=======================================================  =============================================
+``DEMIR_BANK_DATABASE_CONNECTION_NAME``                  needed for using inside transaction.atomic(using=)
+=======================================================  ==================================================
